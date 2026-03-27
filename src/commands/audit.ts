@@ -12,6 +12,7 @@ export async function audit(options?: { json?: boolean; fix?: boolean }): Promis
   }
 
   const checks: AuditCheck[] = [];
+  const config = readOpenClawConfig();
 
   // 1. Gateway bind address — check both actual bind and config
   const gatewayBind = runSafe("ss -tlnp | grep ':18789'");
@@ -51,7 +52,6 @@ export async function audit(options?: { json?: boolean; fix?: boolean }): Promis
   checks.push(validateSSHConfig());
 
   // 5. Gateway token
-  const config = readOpenClawConfig();
   const token = config.gateway?.auth?.token;
   if (!token || token === 'CHANGE_ME_GENERATE_WITH_openssl_rand_hex_36' || token.length < 32) {
     checks.push({
