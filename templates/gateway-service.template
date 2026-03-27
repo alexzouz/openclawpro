@@ -1,0 +1,25 @@
+[Unit]
+Description=OpenClaw Gateway
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/node /usr/bin/openclaw gateway
+Restart=always
+RestartSec=5
+Environment=HOME=__HOME__
+Environment=NODE_ENV=production
+Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:__HOME__/.bun/bin:__HOME__/.local/bin
+
+# Hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+PrivateTmp=true
+MemoryMax=2G
+TasksMax=256
+ReadWritePaths=__HOME__/.openclaw
+
+[Install]
+WantedBy=multi-user.target

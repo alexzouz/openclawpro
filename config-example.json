@@ -1,0 +1,42 @@
+{
+  "$schema": "https://openclaw.ai/schemas/openclaw.json",
+  "gateway": {
+    "port": 18789,
+    "auth": {
+      "token": "CHANGE_ME_GENERATE_WITH_openssl_rand_hex_36"
+    },
+    "bind": "loopback"
+  },
+  "agents": {
+    "defaults": {
+      "workspace": "~/.openclaw/workspace",
+      "heartbeat": {
+        "model": "anthropic/claude-haiku"
+      },
+      "sandbox": true,
+      "memory": {
+        "search": true
+      }
+    }
+  },
+  "channels": {
+    "telegram": {
+      "enabled": false,
+      "dm": {
+        "enabled": true,
+        "policy": "allowlist",
+        "allowFrom": ["YOUR_TELEGRAM_USER_ID"]
+      }
+    },
+    "discord": {
+      "enabled": false,
+      "groupPolicy": "allowlist",
+      "guilds": {},
+      "dm": {
+        "enabled": true,
+        "policy": "allowlist",
+        "allowFrom": ["YOUR_DISCORD_USER_ID"]
+      }
+    }
+  }
+}

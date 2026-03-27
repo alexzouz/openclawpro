@@ -1,0 +1,20 @@
+{$DOMAIN:localhost} {
+    # Security headers
+    header {
+        Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        Permissions-Policy "camera=(), microphone=(), geolocation=()"
+        X-Robots-Tag "noindex,nofollow,noarchive,nosnippet"
+        -Server
+    }
+
+    # Basic auth on all routes
+    basicauth {
+        {$BASIC_AUTH_USER:admin} {$BASIC_AUTH_HASH}
+    }
+
+    # Reverse proxy to OpenClaw gateway
+    reverse_proxy 127.0.0.1:18789
+}

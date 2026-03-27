@@ -1,0 +1,20 @@
+[Unit]
+Description=OpenClaw Gmail Watcher (__LABEL__)
+After=network-online.target openclaw-gateway.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/openclaw webhooks gmail run __ARGS__
+Restart=always
+RestartSec=5
+Environment=HOME=__HOME__
+Environment=GOG_KEYRING_PASSWORD=__GOG_KEYRING_PASSWORD__
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+PrivateTmp=true
+ReadWritePaths=__HOME__/.openclaw __HOME__/.gogcli
+
+[Install]
+WantedBy=multi-user.target
