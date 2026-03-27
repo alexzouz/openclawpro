@@ -9,9 +9,12 @@ Launch the Claude Code agent in background to implement the task.
    CLAUDE_PROMPT="Implement this: $TASK_DESCRIPTION. Create a PR when done referencing issue #$ISSUE_NUMBER. The PR should be created against the main branch of $REPO_FULL."
    ```
 
-2. **Launch Claude in background**:
+2. **Launch Claude in background** (as non-root user `clawdev` since Claude Code refuses root):
    ```bash
-   cd "$WORKTREE_DIR" && claude --dangerously-skip-permissions -p "$CLAUDE_PROMPT" > /tmp/openclaw-worktrees/$REPO_NAME-$BRANCH_SLUG.log 2>&1 &
+   # Ensure clawdev user exists and has access to the worktree
+   chown -R clawdev:clawdev "$WORKTREE_DIR"
+
+   su - clawdev -c "cd '$WORKTREE_DIR' && claude -p '$CLAUDE_PROMPT' > /tmp/openclaw-worktrees/$REPO_NAME-$BRANCH_SLUG.log 2>&1" &
    CLAUDE_PID=$!
    ```
 
