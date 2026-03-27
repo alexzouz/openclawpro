@@ -65,5 +65,6 @@ chmod +x "$INSTALL_DIR/bin/openclawpro.js"
 echo -e "${GREEN}  ✓ OpenClawPro CLI installed${NC}"
 
 # Step 4: Run setup wizard
+# Redirect stdin from /dev/tty so interactive prompts work when piped from curl
 echo -e "${CYAN}→ Launching setup wizard...${NC}"
-node "$INSTALL_DIR/bin/openclawpro.js" setup $ARGS
+node "$INSTALL_DIR/bin/openclawpro.js" setup $ARGS < /dev/tty
