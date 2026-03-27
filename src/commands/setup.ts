@@ -296,7 +296,6 @@ async function configureOpenclaw(): Promise<void> {
         defaults: {
           ...config.agents?.defaults,
           workspace: getWorkspaceDir(),
-          sandbox: { enabled: true },
         },
       },
     };

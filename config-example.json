@@ -13,7 +13,7 @@
       "heartbeat": {
         "model": "anthropic/claude-haiku"
       },
-      "sandbox": { "enabled": true },
+
       "memory": {
         "search": true
       }
