@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # OpenClawPro Enhanced — VPS Bootstrap Script
-# Usage: curl -fsSL https://raw.githubusercontent.com/<repo>/main/setup.sh | bash -s -- [--tailscale] [--caddy] [--egress]
+# Usage: curl -fsSL https://raw.githubusercontent.com/alexzouz/openclawpro/main/setup.sh | bash -s -- [--tailscale] [--caddy] [--egress]
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -35,7 +35,7 @@ ARGS="$@"
 echo -e "${CYAN}→ Installing system packages...${NC}"
 export DEBIAN_FRONTEND=noninteractive
 apt-get update -qq
-apt-get install -y -qq curl ca-certificates gnupg
+apt-get install -y -qq curl ca-certificates gnupg git
 
 # Step 2: Node.js 22
 if ! command -v node &>/dev/null || ! node --version | grep -q "v22\|v24"; then
@@ -45,9 +45,21 @@ if ! command -v node &>/dev/null || ! node --version | grep -q "v22\|v24"; then
 fi
 echo -e "${GREEN}  ✓ Node.js $(node --version)${NC}"
 
-# Step 3: Install OpenClawPro CLI
+# Step 3: Install OpenClawPro CLI from GitHub
+INSTALL_DIR="/opt/openclawpro"
 echo -e "${CYAN}→ Installing OpenClawPro CLI...${NC}"
-npm install -g openclawpro
+if [ -d "$INSTALL_DIR" ]; then
+  echo -e "${CYAN}  Updating existing installation...${NC}"
+  cd "$INSTALL_DIR"
+  git pull --quiet
+else
+  git clone --quiet https://github.com/alexzouz/openclawpro.git "$INSTALL_DIR"
+  cd "$INSTALL_DIR"
+fi
+npm install --production --quiet 2>/dev/null
+npm run build 2>/dev/null
+npm link --quiet 2>/dev/null
+echo -e "${GREEN}  ✓ OpenClawPro CLI installed${NC}"
 
 # Step 4: Run setup wizard
 echo -e "${CYAN}→ Launching setup wizard...${NC}"
