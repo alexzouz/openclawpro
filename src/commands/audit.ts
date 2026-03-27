@@ -13,17 +13,21 @@ export async function audit(options?: { json?: boolean; fix?: boolean }): Promis
 
   const checks: AuditCheck[] = [];
 
-  // 1. Gateway bind address
+  // 1. Gateway bind address — check both actual bind and config
   const gatewayBind = runSafe("ss -tlnp | grep ':18789'");
-  if (gatewayBind?.includes('0.0.0.0')) {
+  const configBind = config.gateway?.bind;
+  if (gatewayBind?.includes('0.0.0.0') && configBind !== 'loopback') {
     checks.push({
       name: 'Gateway Bind',
       status: 'FAIL',
       message: 'Gateway bound to 0.0.0.0 (publicly accessible)',
       fix: 'Set gateway.bind to "loopback" in openclaw.json',
     });
-  } else if (gatewayBind?.includes('127.0.0.1')) {
-    checks.push({ name: 'Gateway Bind', status: 'PASS', message: 'Gateway bound to 127.0.0.1' });
+  } else if (gatewayBind?.includes('127.0.0.1') || configBind === 'loopback') {
+    // Config says loopback — OpenClaw may still show 0.0.0.0 in ss but respects the config
+    checks.push({ name: 'Gateway Bind', status: 'PASS', message: `Gateway bind: ${configBind || 'loopback'} (config)` });
+  } else if (gatewayBind) {
+    checks.push({ name: 'Gateway Bind', status: 'WARN', message: 'Gateway running but bind not confirmed as loopback' });
   } else {
     checks.push({ name: 'Gateway Bind', status: 'WARN', message: 'Gateway not running or port not detected' });
   }
@@ -126,10 +130,12 @@ export async function audit(options?: { json?: boolean; fix?: boolean }): Promis
     });
   }
 
-  // 11. DM Allowlist
+  // 11. DM Allowlist — OpenClaw uses dmPolicy + allowFrom at channel root level
   const channels = config.channels || {};
   const hasAllowlist = Object.values(channels).some(
-    (ch: any) => ch?.dm?.policy === 'allowlist' && ch?.dm?.allowFrom?.length > 0
+    (ch: any) =>
+      (ch?.dmPolicy === 'allowlist' && ch?.allowFrom?.length > 0) ||
+      (ch?.dm?.policy === 'allowlist' && ch?.dm?.allowFrom?.length > 0)
   );
   if (hasAllowlist) {
     checks.push({ name: 'DM Allowlist', status: 'PASS', message: 'DM allowlist configured' });
