@@ -13,7 +13,7 @@ export interface OpenClawConfig {
       heartbeat?: {
         model?: string;
       };
-      sandbox?: boolean;
+      sandbox?: { enabled: boolean };
       memory?: {
         search?: boolean;
       };
