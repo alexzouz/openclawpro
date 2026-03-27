@@ -42,7 +42,7 @@ export async function addCaddy(options?: { domain?: string }): Promise<void> {
   // Step 3: Generate basic auth credentials
   console.log(chalk.cyan('\n→ Generating Basic Auth credentials...'));
   const password = generateBasicAuthPassword();
-  const hashedPassword = run(`printf '%s' "${password.replace(/"/g, '\\"')}" | caddy hash-password --stdin`);
+  const hashedPassword = run(`caddy hash-password --plaintext '${password}'`);
 
   // Step 4: Write Caddyfile
   let caddyfile = readFileSync(join(TEMPLATES, 'Caddyfile'), 'utf-8');
