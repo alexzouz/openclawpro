@@ -8,13 +8,13 @@ Combines the best security practices from 8 open-source repos into a single CLI 
 
 ```bash
 # On a fresh Ubuntu/Debian VPS, as root:
-curl -fsSL https://raw.githubusercontent.com/berniyh/openclawpro/main/setup.sh | bash
+curl -fsSL https://raw.githubusercontent.com/alexzouz/openclawpro/main/setup.sh | bash
 ```
 
 With options:
 ```bash
 # Install with Tailscale VPN + Caddy reverse proxy + egress firewall
-curl -fsSL https://raw.githubusercontent.com/berniyh/openclawpro/main/setup.sh | bash -s -- --tailscale --caddy --egress
+curl -fsSL https://raw.githubusercontent.com/alexzouz/openclawpro/main/setup.sh | bash -s -- --tailscale --caddy --egress
 ```
 
 This installs Node.js 22, the OpenClawPro CLI, and launches the interactive setup wizard.
