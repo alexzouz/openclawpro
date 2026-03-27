@@ -56,11 +56,14 @@ else
   git clone --quiet https://github.com/alexzouz/openclawpro.git "$INSTALL_DIR"
   cd "$INSTALL_DIR"
 fi
-npm install --production --quiet 2>/dev/null
-npm run build 2>/dev/null
-npm link --quiet 2>/dev/null
+npm install 2>&1 | tail -1
+echo -e "${CYAN}  Building...${NC}"
+npx tsc 2>&1 | tail -1 || true
+# Create global symlink manually (npm link can fail in pipes)
+ln -sf "$INSTALL_DIR/bin/openclawpro.js" /usr/local/bin/openclawpro
+chmod +x "$INSTALL_DIR/bin/openclawpro.js"
 echo -e "${GREEN}  ✓ OpenClawPro CLI installed${NC}"
 
 # Step 4: Run setup wizard
 echo -e "${CYAN}→ Launching setup wizard...${NC}"
-openclawpro setup $ARGS
+node "$INSTALL_DIR/bin/openclawpro.js" setup $ARGS
