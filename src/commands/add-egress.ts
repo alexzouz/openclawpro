@@ -88,6 +88,12 @@ export async function addEgress(options?: { rollback?: boolean }): Promise<void>
     run('iptables -A OPENCLAW-EGRESS -p udp --dport 41641 -j RETURN');
   }
 
+  // Allow Cloudflare Tunnel (port 7844 TCP+UDP for QUIC and HTTP/2)
+  if (commandExists('cloudflared')) {
+    run('iptables -A OPENCLAW-EGRESS -p tcp --dport 7844 -j RETURN');
+    run('iptables -A OPENCLAW-EGRESS -p udp --dport 7844 -j RETURN');
+  }
+
   // Allow NTP
   run('iptables -A OPENCLAW-EGRESS -p udp --dport 123 -j RETURN');
 

@@ -1,6 +1,6 @@
 import chalk from 'chalk';
 import { input, confirm } from '@inquirer/prompts';
-import { commandExists, runWithSpinner, run } from '../utils/exec.js';
+import { commandExists, runWithSpinner, run, runSafe } from '../utils/exec.js';
 import { isRoot } from '../utils/system.js';
 import { readCLIConfig, writeCLIConfig } from '../utils/config.js';
 
@@ -33,9 +33,18 @@ export async function addCloudflare(_options?: unknown): Promise<void> {
     validate: (val: string) => val.trim().length > 0 || 'Token is required',
   });
 
-  // Step 3: Install cloudflared as system service
+  // Step 3: Force HTTP/2 protocol (QUIC is blocked on many VPS providers)
+  console.log(chalk.cyan('\n→ Configuring Cloudflare protocol...'));
+  run('mkdir -p /etc/cloudflared');
+  const { writeFileSync } = await import('node:fs');
+  writeFileSync('/etc/cloudflared/config.yml', 'protocol: http2\n');
+  console.log(chalk.green('  ✓ Forced HTTP/2 protocol (QUIC blocked on most VPS)'));
+
+  // Step 4: Install cloudflared as system service
   console.log(chalk.cyan('\n→ Installing cloudflared as system service...'));
   try {
+    // Uninstall first in case of previous failed attempt
+    runSafe('cloudflared service uninstall 2>/dev/null');
     await runWithSpinner(
       'Installing cloudflared service',
       `cloudflared service install ${tunnelToken.trim()}`

@@ -6,6 +6,10 @@ export interface OpenClawConfig {
       token?: string;
     };
     bind?: string;
+    controlUi?: {
+      allowedOrigins?: string[];
+      dangerouslyDisableDeviceAuth?: boolean;
+    };
   };
   agents?: {
     defaults?: {

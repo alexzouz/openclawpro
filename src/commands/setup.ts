@@ -133,6 +133,7 @@ export async function setup(options: Partial<SetupOptions> = {}): Promise<void> 
     { id: 'memory-defense', name: 'Anti Prompt Injection', fn: installMemoryDefense },
     { id: 'aliases', name: 'Shell Aliases', fn: installAliases },
     { id: 'skills', name: 'Claude Skills', fn: runInstallSkills },
+    { id: 'clawdev-user', name: 'Claude Dev User', fn: createClawdevUser },
     { id: 'backup-cron', name: 'Backup Cron', fn: installBackupCron },
   ];
 
@@ -273,7 +274,7 @@ async function runTailscale(_options: SetupOptions): Promise<void> {
   await addTailscale();
 }
 
-async function configureOpenclaw(): Promise<void> {
+async function configureOpenclaw(setupOptions: SetupOptions): Promise<void> {
   const oclawDir = getOpenclawDir();
   ensureDir(oclawDir);
   ensureDir(getWorkspaceDir());
@@ -290,6 +291,12 @@ async function configureOpenclaw(): Promise<void> {
         port: 18789,
         auth: { token },
         bind: 'loopback',
+        controlUi: {
+          allowedOrigins: setupOptions.domain && setupOptions.domain !== 'localhost'
+            ? [`https://${setupOptions.domain}`]
+            : [],
+          dangerouslyDisableDeviceAuth: true,
+        },
       },
       agents: {
         ...config.agents,
@@ -413,6 +420,44 @@ export PATH="$PATH:$HOME/.bun/bin:$HOME/.local/bin"
 async function runInstallSkills(): Promise<void> {
   const { installSkills } = await import('./install-skills.js');
   await installSkills();
+}
+
+async function createClawdevUser(): Promise<void> {
+  // Create non-root user for Claude Code (refuses to run as root with --dangerously-skip-permissions)
+  const userExists = runSafe('id clawdev') !== null;
+  if (!userExists) {
+    run('useradd -m -s /bin/bash clawdev');
+    console.log(chalk.green('  ✓ User clawdev created'));
+  } else {
+    console.log(chalk.dim('  User clawdev already exists'));
+  }
+
+  // Copy Claude config (only essentials, not cache)
+  const clawdevClaude = '/home/clawdev/.claude';
+  ensureDir(clawdevClaude);
+  const home = getHomedir();
+  runSafe(`cp -r ${home}/.claude/skills ${clawdevClaude}/`);
+  runSafe(`cp -r ${home}/.claude/agents ${clawdevClaude}/`);
+  runSafe(`cp -r ${home}/.claude/rules ${clawdevClaude}/`);
+  runSafe(`cp ${home}/.claude/CLAUDE.md ${clawdevClaude}/`);
+  runSafe(`cp ${home}/.claude/settings.json ${clawdevClaude}/`);
+  run('chown -R clawdev:clawdev /home/clawdev/.claude');
+
+  // Copy GitHub CLI config
+  if (existsSync(`${home}/.config/gh/hosts.yml`)) {
+    ensureDir('/home/clawdev/.config/gh');
+    run(`cp ${home}/.config/gh/hosts.yml /home/clawdev/.config/gh/`);
+    run('chown -R clawdev:clawdev /home/clawdev/.config');
+    console.log(chalk.green('  ✓ GitHub CLI config copied'));
+  }
+
+  // Verify Claude Code works as clawdev
+  const claudeVersion = runSafe('su - clawdev -c "claude --version"');
+  if (claudeVersion) {
+    console.log(chalk.green(`  ✓ Claude Code works as clawdev (${claudeVersion})`));
+  } else {
+    console.log(chalk.yellow('  ⚠ Claude Code not found for clawdev — install it later'));
+  }
 }
 
 async function installBackupCron(): Promise<void> {
